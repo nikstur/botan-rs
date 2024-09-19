@@ -1,4 +1,4 @@
-#[cfg(feature = "vendored")]
+#[cfg(any(feature = "vendored", feature = "static"))]
 fn emit_dylibs() -> Vec<&'static str> {
     // Windows doesn't need to dynamically link the C++ runtime
     // but we do need to link to DLLs with needed functionality:
@@ -42,11 +42,8 @@ fn main() {
         println!("cargo:vendored=1");
         println!("cargo:rustc-link-search=native={}", &lib_dir);
         println!("cargo:rustc-link-lib=static={}", botan_library_name());
-
-        for dylib in emit_dylibs() {
-            println!("cargo:rustc-flags=-l dylib={}", dylib);
-        }
     }
+
     #[cfg(not(feature = "vendored"))]
     {
         #[cfg(feature = "static")]
@@ -75,6 +72,13 @@ fn main() {
             {
                 println!("cargo:rustc-link-lib={}", botan_library_name());
             }
+        }
+    }
+
+    #[cfg(any(feature = "vendored", feature = "static"))]
+    {
+        for dylib in emit_dylibs() {
+            println!("cargo:rustc-flags=-l dylib={}", dylib);
         }
     }
 }
